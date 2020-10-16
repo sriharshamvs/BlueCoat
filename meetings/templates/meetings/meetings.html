@@ -1,0 +1,148 @@
+
+{% extends 'base_generic.html' %}
+{% load bootstrap_tags %}
+{% load static %}
+
+
+
+
+{% block content %}
+
+<script src='{% static "js/broadcast_pods.js" %}'></script>
+
+
+
+
+{% if broadcast_pods %}
+  <div>
+    <h2>Broadcast Pods : </h2>
+    <div id="broadcast_pods">
+
+    </div>
+  </div>
+{% endif %}
+
+
+
+
+Choose a server : 
+<select id="server_select" onchange="changeServer();">
+  {% for server in bbb_servers %}
+    {% if server.id == bbb_server.id %}
+      <option value='{{server.id}}' selected>{{server.url}}</option>
+    {% else %}
+      <option value='{{server.id}}'>{{server.url}}</option>
+    {% endif %}
+  {% endfor %}
+</select>
+
+
+<h2>Meetings at {{bbb_server.url}} : {{num_meetings}}</h2>
+Total Participants : {{ total_participants }}
+{% if meetings %}
+<div class="accordion" id="accordionExample">
+  <div class="card">
+    <div class="card-header" id="headingOne">
+      
+        <div class="row" style="text-align: center;">
+          
+          <div class="col md-4">Meeting Name</div>
+          <div class="col md-2">Participants</div>
+          <div class="col md-4">Meeting Link</div>
+          <div class="col md-2">Actions</div>
+        
+        </div>  
+      
+    </div>  
+  </div>
+
+
+
+  {% for meeting in meetings %}
+  <div class="card">
+    <div class="card-header" id="heading_{{meeting.meeting_id}}">
+      <div class="row" style="text-align: center;">
+        <div class="col-md-4">{{meeting.name}}</div>
+        <div class="col-md-2">{{meeting.participant_count}}</div>
+        <div class="col-md-4"><a href='{{meeting.link}}' target='_blank' class="btn btn-primary">Join Meeting</a></div>
+        <div class="col-md-2"><button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapse_{{meeting.meeting_id}}" aria-expanded="false" aria-controls="collapse_{{meeting.meeting_id}}">
+          Expand
+        </button></div>
+      </div>
+    </div>
+    <div id="collapse_{{meeting.meeting_id}}" class="collapse" aria-labelledby="heading_{{meeting.meeting_id}}" data-parent="#accordionExample">
+      <div class="card-body">
+        <div class="row">
+
+          <div class="col-md-7">
+            <div class="input-group mb-3">
+            <select class='custom_select' id='so_{{meeting.meeting_id}}' style="width:50%">
+              {% for stream_origin in stream_origins %}
+                <option value="{{stream_origin.url}}">{{stream_origin.name}} - {{stream_origin.url}}</option>
+              {% endfor %}
+            </select>
+            <div class="input-group-append">
+              <input class="input-group-text" id='sr_{{meeting.meeting_id}}' placeholder="Stream Key">
+            </div>
+            </div>
+        </div>
+          <div class="col-md-3">Select Pod : <select id='ps_{{meeting.meeting_id}}'>
+            {% for broadcast_pod in broadcast_pods %}
+              <option value="bp_{{broadcast_pod.id}}">{{broadcast_pod.name}}</option>
+            {% endfor %}
+          </select></div>
+          <div class="col-md-2"><button class="btn btn-success" data-meeting-name='{{meeting.name}}' id='sm_{{meeting.meeting_id}}' data-id='{{meeting.meeting_id}}' data-state='idle' data-pod="" data-bbb-url='https://{{bbb_server.url}}/bigbluebutton/api' data-bbb-secret='{{bbb_server.secret}}' onclick="startStream(event);">Start Stream</button></div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+
+
+ 
+  {% endfor %}
+</div>
+
+{% else %}
+No meetings right now 
+{% endif %}
+{% endblock %}
+
+{% block javascript %}
+  var broadcast_pods = {};
+  var meetings = [];
+
+  {% for meeting in meetings %}
+    meetings.push("{{meeting.meeting_id}}");
+  {% endfor %}
+
+  {% if broadcast_pods %}
+    {% for broadcast_pod in broadcast_pods %}
+      broadcast_pods['bp_'+{{broadcast_pod.id}}] = new BroadcastPod("{{broadcast_pod.id}}","{{broadcast_pod.name}}", "{{broadcast_pod.host}}", "{{broadcast_pod.port}}", "#broadcast_pods");
+    {% endfor %}
+  {% endif %}
+
+  changeServer = function () {
+    window.location = '/meetings/' + document.getElementById('server_select').value;
+  }
+
+  $('#toast').toast();
+{% endblock %}
+
+{% block nav %}
+<nav class="navbar navbar-expand-lg navbar-light bg-info">
+    <a class="navbar-brand" href="#">BlueCoat - Welcome {{user.user.first_name}} {{ user.user.last_name}}</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse  w-100 order-3 dual-collapse2" id="navbarNav">
+      <ul class="navbar-nav ml-auto">
+       
+        <li class="nav-item" style="float: right;" >
+          <a href="{% url 'logout'%}?next={{request.path}}" >Logout</a>
+        </li>
+     
+      </ul>
+    </div>
+  </nav>
+{% endblock %}

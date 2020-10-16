@@ -1,0 +1,14 @@
+{% extends 'base_generic.html' %}
+{% load bootstrap_tags %}
+
+{% block content %}
+{% if error %}
+<h2 class="mt-2" style="color: red;">{{error}}</h2>
+{% endif %}
+    <h1 class="mt-2">Please Login to Proceed </h1>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ form | as_bootstrap }}
+    <button type="submit" class="btn btn-success">Enter</button>
+  </form>
+{% endblock %}

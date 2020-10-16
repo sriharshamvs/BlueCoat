@@ -1,0 +1,41 @@
+{% extends 'base_generic.html' %}
+{% load bootstrap_tags %}
+
+{% block content %}
+    <h1 class="mt-2">Please Enter OTP to Proceed </h1>
+    <p>OTP has been sent to {{ phone_number }} </p>
+    <div id='timer_block'>
+        OTP will expire in 15 minutes : <span id='timer'></span>
+    </div>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {{ form | as_bootstrap }}
+    <input type='hidden' name='phone_number' value="{{ phone_number }}"></input>
+    <button type="submit" class="btn btn-success">Enter</button>
+  </form>
+{% endblock %}
+
+{% block javascript %}
+function startTimer(duration, display) {
+    var timer = duration, minutes, seconds;
+    setInterval(function () {
+        minutes = parseInt(timer / 60, 10);
+        seconds = parseInt(timer % 60, 10);
+
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        seconds = seconds < 10 ? "0" + seconds : seconds;
+
+        display.textContent = minutes + ":" + seconds;
+
+        if (--timer < 0) {
+            window.location = '/?otp_expired=True';
+        }
+    }, 1000);
+}
+
+window.onload = function () {
+    var fiveMinutes = 60 * 15,
+        display = document.querySelector('#timer');
+    startTimer(fiveMinutes, display);
+};
+{% endblock %}

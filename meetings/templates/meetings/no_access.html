@@ -1,0 +1,39 @@
+
+{% extends 'base_generic.html' %}
+{% load bootstrap_tags %}
+{% load static %}
+
+
+
+
+{% block content %}
+
+<div class="jumbotron">
+  <h1 class="display-4">Restricted Access</h1>
+  <p class="lead">You do not have access to this server.</p>
+  <hr class="my-4">
+  <p>Please contact administrator to learn more</p>
+  <a class="btn btn-primary btn-lg" href="/" role="button">Go Back</a>
+  
+</div>
+{% endblock %}
+
+
+
+{% block nav %}
+<nav class="navbar navbar-expand-lg navbar-light bg-info">
+    <a class="navbar-brand" href="#">BlueCoat - Welcome {{user.user.first_name}} {{ user.user.last_name}}</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse  w-100 order-3 dual-collapse2" id="navbarNav">
+      <ul class="navbar-nav ml-auto">
+       
+        <li class="nav-item" style="float: right;" >
+          <a href="{% url 'logout'%}?next={{request.path}}" >Logout</a>
+        </li>
+     
+      </ul>
+    </div>
+  </nav>
+{% endblock %}
