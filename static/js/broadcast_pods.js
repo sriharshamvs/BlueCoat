@@ -118,7 +118,7 @@ class BroadcastPod {
             
             document.querySelector('#bpcard_'+this.pod.id).remove();
             this.pod = new BroadcastPod(this.pod.id, this.pod.name, this.pod.host, this.pod.port, this.pod.parel_id);
-            
+            broadcast_pods["bp_"+this.pod.id] = this.pod;
         }
 
         document.querySelector('#details_'+this.id).onclick = function(ev) {            
@@ -165,6 +165,7 @@ class BroadcastPod {
             
                 document.querySelector('#bpcard_'+this.pod.id).remove();
                 this.pod = new BroadcastPod(this.pod.id, this.pod.name, this.pod.host, this.pod.port, this.pod.parel_id);
+	        broadcast_pods["bp_"+this.pod.id] = this.pod;
                 
             }
             toastr.error("Unable to connect to :"+this.name+" @ " +this.url);

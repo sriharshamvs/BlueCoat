@@ -25,7 +25,7 @@ SECRET_KEY = 'e3$kq0$kph6x)&+fucbi7695tvjs+*s$8!id-^8r8l+*#ef%(+'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['bluecoat.swecha.org']
 LOGIN_REDIRECT_URL = '/'
 
 # Application definition
