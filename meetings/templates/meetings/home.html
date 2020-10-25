@@ -1,0 +1,39 @@
+
+{% extends 'base_generic.html' %}
+{% load bootstrap_tags %}
+{% load static %}
+
+
+
+
+{% block content %}
+
+<div class="jumbotron">
+  <h1 class="display-4">No Meetings</h1>
+  <p class="lead">Welcome !. Select a BBB server to proceed.</p>
+  Choose a server : 
+<select id="server_select" onchange="changeServer();">
+  <option value='' selected>-- Select --</option>
+  {% for server in bbb_servers %}
+    {% if server.id == bbb_server.id %}
+      <option value='{{server.id}}' selected>{{server.url}}</option>
+    {% else %}
+      <option value='{{server.id}}'>{{server.url}}</option>
+    {% endif %}
+  {% endfor %}
+</select>
+
+  <hr class="my-4">
+  
+  
+</div>
+{% endblock %}
+
+{% block javascript %}
+  
+  changeServer = function () {
+    window.location = '/meetings/' + document.getElementById('server_select').value;
+  }
+
+  $('#toast').toast();
+{% endblock %}

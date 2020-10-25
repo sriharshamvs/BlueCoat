@@ -48,7 +48,7 @@ def home(request):
     if request.user.is_authenticated:
         servers = BBBServer.objects.filter(groups__in = request.user.groups.all())
         if servers:
-            return show_meetings(request, servers[0].id)
+            return render(request, 'meetings/home.html', {'bbb_servers':servers})
         return render(request, 'meetings/no_servers.html')
     return redirect('/accounts/login')
 
