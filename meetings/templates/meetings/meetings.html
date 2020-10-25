@@ -24,19 +24,33 @@
 
 
 
+<div class="row">
+  <div class="col md-4">
+      Choose a server : 
+    <select id="server_select" onchange="changeServer();">
+      {% for server in bbb_servers %}
+        {% if server.id == bbb_server.id %}
+          <option value='{{server.id}}' selected>{{server.url}}</option>
+        {% else %}
+          <option value='{{server.id}}'>{{server.url}}</option>
+        {% endif %}
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col md-8">
+    <div class="input-group mb-12">
+      <div class="input-group-prepend">
+        <span class="input-group-text" id="basic-addon3">Joining Meeting as</span>
+      </div>
+      <input class="form-control" id='bbb_join_name' type="text" placeholder="{{bbb_guest_name}}"/>
+      <div class="input-group-append">
+        <button id='bbb_join_name_change_btn' type="button" class='btn btn-primary'>Change Name</button>
+      </div>
+      </div>
+  </div>
+</div>
 
-Choose a server : 
-<select id="server_select" onchange="changeServer();">
-  {% for server in bbb_servers %}
-    {% if server.id == bbb_server.id %}
-      <option value='{{server.id}}' selected>{{server.url}}</option>
-    {% else %}
-      <option value='{{server.id}}'>{{server.url}}</option>
-    {% endif %}
-  {% endfor %}
-</select>
-
-
+<hr>
 <h2>Meetings at {{bbb_server.url}} : {{num_meetings}}</h2>
 Total Participants : {{ total_participants }}
 {% if meetings %}
@@ -125,7 +139,14 @@ No meetings right now
   changeServer = function () {
     window.location = '/meetings/' + document.getElementById('server_select').value;
   }
-
+  document.querySelector("#bbb_join_name_change_btn").onclick = function () {
+    var join_name = document.querySelector("#bbb_join_name").value;
+    if (join_name.length < 3) {
+      alert('Please enter a valid name to join in the meeting.');
+      return;
+    }
+    window.location = '/meetings/' + document.getElementById('server_select').value + '?bbb_guest_name='+join_name;
+  }
   $('#toast').toast();
 {% endblock %}
 

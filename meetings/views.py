@@ -13,7 +13,11 @@ def show_meetings(request, server_id):
         bbb_server = bbb_server[0]
         bbb_servers = BBBServer.objects.filter(groups__in = request.user.groups.all()).distinct()
 
-        bbb_r = get_meetings(server_id)
+        bbb_guest_name = 'BBBGuest'
+        if request.method == 'GET' and 'bbb_guest_name' in request.GET:
+            bbb_guest_name = request.GET['bbb_guest_name']
+
+        bbb_r = get_meetings(server_id, bbb_name = bbb_guest_name)
         if bbb_r == 'no meetings':
             return render(request, 'meetings/no_meetings.html', {'bbb_server':bbb_server, 'bbb_servers' : bbb_servers})
         else:
@@ -22,7 +26,7 @@ def show_meetings(request, server_id):
         
         stream_origins = StreamOrigin.objects.filter(groups__in = request.user.groups.all()).distinct()
 
-        return render(request, 'meetings/meetings.html', {'meetings' : meetings, 'num_meetings':num_meetings, 'total_participants':total_participants, 'bbb_server': bbb_server, 'broadcast_pods': broadcast_pods, 'bbb_servers':bbb_servers, 'stream_origins' : stream_origins})
+        return render(request, 'meetings/meetings.html', {'meetings' : meetings, 'num_meetings':num_meetings, 'total_participants':total_participants, 'bbb_server': bbb_server, 'broadcast_pods': broadcast_pods, 'bbb_servers':bbb_servers, 'stream_origins' : stream_origins, 'bbb_guest_name':bbb_guest_name})
     return redirect('/accounts/login')
 
 

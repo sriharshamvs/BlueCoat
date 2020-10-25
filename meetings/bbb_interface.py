@@ -16,7 +16,7 @@ class Meeting:
         self.participant_count = participant_count
         self.attendee_pw = attendee_pw
 
-def get_meetings(bbb_site_id):
+def get_meetings(bbb_site_id, bbb_name="BBBGuest"):
     bbb_site_obj = BBBServer.objects.filter(id=bbb_site_id)
     if bbb_site_obj:
         bbb_site_obj = bbb_site_obj[0]
@@ -41,7 +41,7 @@ def get_meetings(bbb_site_id):
     new_meetings = []
     for meeting in meetings:
         
-        full_name = "BBBGuest"
+        full_name = bbb_name
         participantCount += int(meeting['participantCount'])
         meetingID = meeting['meetingID']
         
