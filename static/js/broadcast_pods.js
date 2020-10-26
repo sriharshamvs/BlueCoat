@@ -29,7 +29,9 @@ startStream = function(ev) {
             return;
         }
         var pod = broadcast_pods[podid];
-
+        //var altstopbtn = document.querySelector("#stopstream_"+podid.substr(3));
+        //altstopbtn.setAttribute('stop_button_id',ev.target.id);
+        
         console.log(podid, pod);
         
         pod.startStream(bbb_url, bbb_secret, data_id, meeting_name, link);
@@ -98,8 +100,8 @@ class BroadcastPod {
         this.name = name;
         this.host = host;
         this.port = port;
-        this.state = INDETERMINATE;
-
+        this.state = SOCKET_CLOSED;
+        this.meeting_id = "";
         this.url = "ws://" + this.host + ":" + this.port;
         this.ws = new WebSocket(this.url);
         this.ws.onmessage = this.msgHandler;
@@ -112,9 +114,17 @@ class BroadcastPod {
         this.parel = document.querySelector(parel);
         this.addElement();
         removeFromList(this.id);
+        var stel = document.querySelector('#state_'+this.id);
+        stel.innerHTML = '<span class="badge badge-'+STATE_COLORS[this.state]+'">'+STATE_MESSAGES[this.state]+'</span>';
         
         document.querySelector('#details_'+this.id).pod = this;
         document.querySelector('#output_'+this.id).pod = this;
+        document.querySelector('#stopstream_'+this.id).pod = this;
+        document.querySelector('#details_'+this.id).hidden = true;
+        document.querySelector('#output_'+this.id).hidden = true;            
+        document.querySelector('#stopstream_'+this.id).hidden = true;
+        document.querySelector('#action_'+this.id).pod = this;
+
         document.querySelector('#action_'+this.id).onclick = function(ev) {
             
             document.querySelector('#bpcard_'+this.pod.id).remove();
@@ -177,33 +187,52 @@ class BroadcastPod {
         if (this.state == POD_BUSY) {
             document.querySelector('#details_'+this.id).hidden = false;
             document.querySelector('#output_'+this.id).hidden = false;     
-            
+            document.querySelector('#stopstream_'+this.id).hidden = false;
+
             document.querySelector('#details_'+this.id).pod = this;
         document.querySelector('#output_'+this.id).pod = this;
-        document.querySelector('#details_'+this.id).onclick = function(ev) {            
+        document.querySelector('#details_'+this.id).onclick = function(ev) {   
+            ev.target.setAttribute('data-clicked', "true");         
             this.pod.send({command:'get_details'})            
         }
         document.querySelector('#output_'+this.id).onclick = function(ev) {            
             this.pod.send({command:'get_output'})            
         }
+        document.querySelector('#stopstream_'+this.id).onclick = function(ev) {            
+            this.pod.send({command:'close_stream'})            
+            //toastr.info("Stream Stopped");
+            if (this.pod.meeting_id.length > 0){
+                var altbuttonid = "#sm_"+this.pod.meeting_id;
+                var altbutton = document.querySelector(altbuttonid);
+                if (altbutton) {
+                    var meeting_name = altbutton.attributes['data-meeting-name'].nodeValue;
+                    altbutton.attributes['data-state'].nodeValue = 'idle';
+                    altbutton.innerHTML = 'Start Stream';
+                    altbutton.className = 'btn btn-success';
+                    toastr.warning("Stopped Meeting :"+meeting_name+" on pod : " + this.pod.name);
+                }
+            }
+        }
+        
         
 
         } else {
             document.querySelector('#details_'+this.id).hidden = true;
             document.querySelector('#output_'+this.id).hidden = true;            
+            document.querySelector('#stopstream_'+this.id).hidden = true;            
         }
     }
 
     exitHandler(x) {
-        //sleep(5);
+        console.log("Hiii!");
         this.pod.state = SOCKET_CLOSED;
         this.pod.updateState();
         removeFromList(this.pod.id);
     }
 
     addElement() {
-        this.parel.innerHTML += '<div class="card mb-3" id="bpcard_'+this.id+'"><div class="row no-gutters"><div class="col-md-2"><div class="card-body"><p class="card-text">'+this.name+'</p></div></div><div class="col-md-4"><div class="card-body"><p class="card-text "> URL : '+this.url+'</p></div></div><div class="col-md-2"><div class="card-body"><p class="card-text" id="state_'+this.id+'">'+this.state+'</p></div></div><div class="col-md-4"><div class="card-body"><button class="btn btn-primary" id="action_'+this.id+'" >Retry</button><div class="btn-group" role="group"><button class="btn btn-primary" id="details_'+this.id+'" >Get Details</button><button class="btn btn-primary" id="output_'+this.id+'" >Get Output</button></div></div></div></div></div>';        
-        // /this.updateState();
+        this.parel.innerHTML += '<div class="card mb-3" id="bpcard_'+this.id+'"><div class="row no-gutters"><div class="col-md-2"><div class="card-body"><p class="card-text">'+this.name+'</p></div></div><div class="col-md-3"><div class="card-body"><p class="card-text "> URL : '+this.url+'</p></div></div><div class="col-md-2"><div class="card-body"><p class="card-text" id="state_'+this.id+'">'+this.state+'</p></div></div><div class="col-md-5"><div class="card-body"><button class="btn btn-primary" id="action_'+this.id+'" >Retry</button><div class="btn-group" role="group"><button class="btn btn-primary" id="details_'+this.id+'" data-clicked="false">Get Details</button><button class="btn btn-primary" id="output_'+this.id+'" >Get Output</button><button class="btn btn-danger" id="stopstream_'+this.id+'" >Stop Stream</button></div></div></div></div></div>';        
+        //this.updateState();
     }
 
     msgHandler(msg) {
@@ -212,16 +241,55 @@ class BroadcastPod {
         if (data.command == 'status') {
             if (data.status == 'idle') {
                 this.pod.state = POD_IDLE;
+                
+                if (this.pod.meeting_id.length > 0){
+                    var altbuttonid = "#sm_"+this.pod.meeting_id;
+                    var altbutton = document.querySelector(altbuttonid);
+                    if (altbutton) {
+                        var meeting_name = altbutton.attributes['data-meeting-name'].nodeValue;
+                        altbutton.attributes['data-state'].nodeValue = 'idle';
+                        altbutton.innerHTML = 'Start Stream';
+                        altbutton.className = 'btn btn-success';
+                        toastr.warning("Stopped Meeting :"+meeting_name+" on pod : " + this.pod.name);
+                    }
+                }
+                
+                this.pod.meeting_id = "";
                 addToList(this.pod.id, this.pod.name);
+
+
+
+
             } else if (data.status == 'busy') {
                 this.pod.state = POD_BUSY;
+                this.pod.send({command:'get_details'});
                 removeFromList(this.pod.id);
             }
             
             this.pod.updateState();
         } else if (data.command == 'get_details') {
-            var message = "BBB Server: " + data.bbb_url + " <br> Meeting ID : " + data.bbb_meeting_id + "<br>" + "Meeting Name : " + data.bbb_meeting_name + "<br>" + "Streaming to : " + data.bbb_stream_url;
-            toastr.info(message);
+            this.pod.meeting_id =data.bbb_meeting_id;
+            var details_button = document.querySelector("#details_"+this.pod.id);
+            var details_clicked = details_button.attributes['data-clicked'].nodeValue;
+            if (details_clicked == "true"){
+                var message = "BBB Server: " + data.bbb_url + " <br> Meeting ID : " + data.bbb_meeting_id + "<br>" + "Meeting Name : " + data.bbb_meeting_name + "<br>" + "Streaming to : " + data.bbb_stream_url;
+                toastr.info(message);
+                details_button.setAttribute('data-clicked', "false");      
+            } else {
+                if (this.pod.meeting_id.length > 0){
+                    var altbuttonid = "#sm_"+this.pod.meeting_id;
+                    var altbutton = document.querySelector(altbuttonid);
+                    if (altbutton) {
+                        var meeting_name = altbutton.attributes['data-meeting-name'].nodeValue;
+                        altbutton.attributes['data-state'].nodeValue = 'busy';
+                        altbutton.innerHTML = 'Stop Stream';
+                        altbutton.className = 'btn btn-danger';
+                        altbutton.attributes['data-pod'].nodeValue = "bp_"+this.pod.id;
+                        //toastr.warning("Stopped Meeting :"+meeting_name+" on pod : " + this.pod.name);
+                    }
+                }
+                
+            }
         } else if (data.command == 'get_output') {
             alert(data.stdout);
         }
