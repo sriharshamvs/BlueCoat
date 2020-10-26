@@ -2,8 +2,9 @@
 const SOCKET_CLOSED = 0;
 const POD_IDLE = 1;
 const POD_BUSY = 2;
-const STATE_COLORS = ['dark', 'success', 'danger'];
-const STATE_MESSAGES = ['Down', 'Idle', 'Busy'];
+const INDETERMINATE = 3;
+const STATE_COLORS = ['dark', 'success', 'danger', 'warning'];
+const STATE_MESSAGES = ['Down', 'Idle', 'Busy', 'Unknown'];
 
 
 startStream = function(ev) {
@@ -97,7 +98,7 @@ class BroadcastPod {
         this.name = name;
         this.host = host;
         this.port = port;
-        this.state = SOCKET_CLOSED;
+        this.state = INDETERMINATE;
 
         this.url = "ws://" + this.host + ":" + this.port;
         this.ws = new WebSocket(this.url);
@@ -155,7 +156,7 @@ class BroadcastPod {
         var stel = document.querySelector('#state_'+this.id);
         stel.innerHTML = '<span class="badge badge-'+STATE_COLORS[this.state]+'">'+STATE_MESSAGES[this.state]+'</span>';
         
-        if (this.state != SOCKET_CLOSED) {
+        if (this.state != SOCKET_CLOSED ) {
             document.querySelector('#action_'+this.id).hidden = true;
             
         } else {
@@ -168,7 +169,9 @@ class BroadcastPod {
 	        broadcast_pods["bp_"+this.pod.id] = this.pod;
                 
             }
-            toastr.error("Unable to connect to :"+this.name+" @ " +this.url);
+            if (this.state != INDETERMINATE) {
+                toastr.error("Unable to connect to :"+this.name+" @ " +this.url);
+            }
         }
 
         if (this.state == POD_BUSY) {
@@ -192,6 +195,7 @@ class BroadcastPod {
     }
 
     exitHandler(x) {
+        //sleep(5);
         this.pod.state = SOCKET_CLOSED;
         this.pod.updateState();
         removeFromList(this.pod.id);
@@ -199,7 +203,7 @@ class BroadcastPod {
 
     addElement() {
         this.parel.innerHTML += '<div class="card mb-3" id="bpcard_'+this.id+'"><div class="row no-gutters"><div class="col-md-2"><div class="card-body"><p class="card-text">'+this.name+'</p></div></div><div class="col-md-4"><div class="card-body"><p class="card-text "> URL : '+this.url+'</p></div></div><div class="col-md-2"><div class="card-body"><p class="card-text" id="state_'+this.id+'">'+this.state+'</p></div></div><div class="col-md-4"><div class="card-body"><button class="btn btn-primary" id="action_'+this.id+'" >Retry</button><div class="btn-group" role="group"><button class="btn btn-primary" id="details_'+this.id+'" >Get Details</button><button class="btn btn-primary" id="output_'+this.id+'" >Get Output</button></div></div></div></div></div>';        
-        this.updateState();
+        // /this.updateState();
     }
 
     msgHandler(msg) {
