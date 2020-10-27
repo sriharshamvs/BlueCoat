@@ -7,6 +7,29 @@ const STATE_COLORS = ['dark', 'success', 'danger', 'warning'];
 const STATE_MESSAGES = ['Down', 'Idle', 'Busy', 'Unknown'];
 
 
+addStreamLink = function(ev) {
+    var meeting_id = ev.target.attributes['data-meeting-id'].nodeValue;
+    var main_row = document.querySelector('#main_'+meeting_id);
+    var data_seq = ev.target.attributes['data-seq'].nodeValue;
+    
+    //console.log('.so_'+meeting_id+"[data-seq='"+data_seq+"']");
+    //console.log(document.querySelector('.so_'+meeting_id+"[data-seq='"+data_seq+"']"));
+    var select_box = document.querySelector('.so_'+meeting_id+"[data-seq='"+data_seq+"']").cloneNode(true);
+    var next_id = String(meeting_links[meeting_id]+1);
+    var this_row = 'main_'+meeting_id+'_'+next_id;
+    select_box.setAttribute('data-seq', next_id)
+    var input_box = document.querySelector('.sr_'+meeting_id+"[data-seq='"+data_seq+"']").cloneNode(true);
+    input_box.setAttribute('data-seq', next_id)
+    main_row.innerHTML += '<div class="row" style="margin-bottom:1%" id="main_'+meeting_id+'_'+next_id+'"><div class="col-md-7"><div class="input-group">' + select_box.outerHTML + '<div class="input-group-append">' +  input_box.outerHTML + '<button class="btn btn-danger" data-main="'+this_row+'" onclick="removeStreamLink(event);" >-</button></div></div></div></div>';   
+    meeting_links[meeting_id] += 1;
+}
+
+removeStreamLink = function(ev){
+    var meeting_id = ev.target.attributes['data-main'].nodeValue;
+    var main_row = document.querySelector('#'+meeting_id);
+    main_row.remove();
+    meeting_links[meeting_id] -= 1;
+}
 startStream = function(ev) {
     
     var data_id = ev.target.attributes['data-id'].nodeValue;
@@ -16,13 +39,21 @@ startStream = function(ev) {
     var state = ev.target.attributes['data-state'].nodeValue;
     
     if (state == 'idle') {
-        var link = document.querySelector('#sr_'+data_id).value;
-        if (link.length < 3){
-            toastr.error("Invalid Stream Key");
-            return;
+        var links = document.querySelectorAll('.sr_'+data_id);
+        var all_links = [];
+        for (var i = 0; i < links.length; i++){
+            var link = links[i].value;
+            var seq_value = links[i].attributes['data-seq'].nodeValue;
+            if (link.length < 3){
+                toastr.error("Invalid Stream Key:" + link.value);
+                return;
+            }
+            var link_url = document.querySelector('.so_'+data_id + '[data-seq="'+seq_value+'"]').value;
+            link_url = link_url + link;
+            all_links.push(link_url);
         }
-        link =  document.querySelector('#so_'+data_id).value + link;
-
+        
+       
         var podid = document.querySelector('#ps_'+data_id).value;
         if (podid.length == 0) {
             toastr.error("Looks like all pods are busy !!");
@@ -34,7 +65,7 @@ startStream = function(ev) {
         
         console.log(podid, pod);
         
-        pod.startStream(bbb_url, bbb_secret, data_id, meeting_name, link);
+        pod.startStream(bbb_url, bbb_secret, data_id, meeting_name, all_links);
         toastr.info("Started Meeting :"+meeting_name+" on pod : " + pod.name);
 
         ev.target.attributes['data-state'].nodeValue = 'busy';
@@ -141,8 +172,8 @@ class BroadcastPod {
         
     }
 
-    startStream(bbb_url, bbb_secret, bbb_meeting_id, bbb_meeting_name, stream_link) {
-        this.send({"command":"start_stream", "bbb_url":bbb_url, "bbb_secret": bbb_secret, "bbb_meeting_id":bbb_meeting_id, "bbb_stream_url":stream_link, "bbb_meeting_name": bbb_meeting_name});
+    startStream(bbb_url, bbb_secret, bbb_meeting_id, bbb_meeting_name, stream_links) {
+        this.send({"command":"start_stream", "bbb_url":bbb_url, "bbb_secret": bbb_secret, "bbb_meeting_id":bbb_meeting_id, "bbb_stream_url":stream_links, "bbb_meeting_name": bbb_meeting_name});
     }
 
     stopStream() {
@@ -284,7 +315,7 @@ class BroadcastPod {
                         altbutton.attributes['data-state'].nodeValue = 'busy';
                         altbutton.innerHTML = 'Stop Stream';
                         altbutton.className = 'btn btn-danger';
-                        altbutton.attributes['data-pod'].nodeValue = "bp_"+this.pod.id;
+                        altbutton.attributes['data-pod'].nodeValue = "bp_"+ this.pod.id;
                         //toastr.warning("Stopped Meeting :"+meeting_name+" on pod : " + this.pod.name);
                     }
                 }

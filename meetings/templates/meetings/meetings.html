@@ -85,19 +85,22 @@ Total Participants : {{ total_participants }}
       </div>
     </div>
     <div id="collapse_{{meeting.meeting_id}}" class="collapse" aria-labelledby="heading_{{meeting.meeting_id}}" data-parent="#accordionExample">
-      <div class="card-body">
-        <div class="row">
+      <div class="card-body" id='main_{{meeting.meeting_id}}'>
+        <div class="row" style="margin-bottom:1%;">
 
           <div class="col-md-7">
-            <div class="input-group mb-3">
-            <select class='custom_select' id='so_{{meeting.meeting_id}}' style="width:50%">
+            <div class="input-group">
+            <select class='custom_select so_{{meeting.meeting_id}}' data-seq='1' style="width:40%">
               {% for stream_origin in stream_origins %}
                 <option value="{{stream_origin.url}}">{{stream_origin.name}} - {{stream_origin.url}}</option>
               {% endfor %}
             </select>
-            <div class="input-group-append">
-              <input class="input-group-text" id='sr_{{meeting.meeting_id}}' placeholder="Stream Key">
+            
+            <div class="input-group-append" >
+              <input class='input-group-text sr_{{meeting.meeting_id}}' placeholder="Stream Key" data-seq='1' style="width: 50%;">
+              <button class="btn btn-primary" data-seq='1' data-meeting-id='{{meeting.meeting_id}}' onclick="addStreamLink(event);" >+</button>
             </div>
+         
             </div>
         </div>
           <div class="col-md-3">Select Pod : <select id='ps_{{meeting.meeting_id}}'>
@@ -125,9 +128,10 @@ No meetings right now
 {% block javascript %}
   var broadcast_pods = {};
   var meetings = [];
-
+  var meeting_links = {};
   {% for meeting in meetings %}
     meetings.push("{{meeting.meeting_id}}");
+    meeting_links["{{meeting.meeting_id}}"] = 1;
   {% endfor %}
 
   {% if broadcast_pods %}
