@@ -84,11 +84,14 @@ startStream = function(ev) {
     }
 }
 
+escapeString = function(string){
+	return string.replace('[','\\[').replace(']','\\]');
+}
 
 removeFromList = function(podid) {
     for(var i =0; i < meetings.length; i++) {
         meeting_id = meetings[i];
-        select_box = document.querySelector("#ps_"+meeting_id);
+        select_box = document.querySelector("#ps_"+escapeString(meeting_id));
         for ( var j = 0, l = select_box.options.length; j < l; j++ ) {
 
             if ( select_box.options[j].value == 'bp_'+podid ) {
@@ -106,7 +109,7 @@ removeFromList = function(podid) {
 addToList = function(podid, podname) {
     for(var i =0; i < meetings.length; i++) {
         meeting_id = meetings[i];
-        select_box = document.querySelector("#ps_"+meeting_id);
+        select_box = document.querySelector("#ps_"+escapeString(meeting_id));
         var found = false;
         for ( var j = 0, l = select_box.options.length; j < l; j++ ) {
 
